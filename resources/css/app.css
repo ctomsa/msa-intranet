@@ -1,0 +1,608 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ====== MSA Design Tokens (из Figma) ====== */
+
+:root {
+  --font-size: 16px;
+  --background: #F7F9FC;
+  --foreground: #1C1F22;
+  --card: #FFFFFF;
+  --card-foreground: #1C1F22;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1F22;
+  --primary: #6A5BFF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F4F5F7;
+  --secondary-foreground: #2E333A;
+  --muted: #F4F5F7;
+  --muted-foreground: #6B7280;
+  --accent: #3F7DF4;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  --input: #FFFFFF;
+  --input-background: #FFFFFF;
+  --switch-background: #E5E7EB;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --ring: rgba(106, 91, 255, 0.2);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 1rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1C1F22;
+  --sidebar-primary: #6A5BFF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F4F5F7;
+  --sidebar-accent-foreground: #2E333A;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: rgba(106, 91, 255, 0.2);
+}
+
+/* Если темная тема не нужна — можно этот блок вообще не подключать */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+/* Маппим токены в Tailwind-переменные */
+@layer base {
+  :root {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-input-background: var(--input-background);
+    --color-switch-background: var(--switch-background);
+    --color-ring: var(--ring);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+  }
+
+  * {
+    @apply border-[var(--color-border)];
+  }
+
+  body {
+    @apply bg-[color:var(--color-background)] text-[color:var(--color-foreground)];
+    font-size: var(--font-size);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+}
+
+/* Базовая типографика */
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1 {
+      font-size: 1.75rem; /* ≈ text-2xl */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: 1.5rem; /* text-xl */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: 1.125rem; /* text-lg */
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4, p, label, button, input {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    p,
+    input {
+      font-weight: var(--font-weight-normal);
+    }
+
+    label,
+    button {
+      font-weight: var(--font-weight-medium);
+    }
+  }
+}
+
+/* ====== Enterprise SaaS utilities (MSA) ====== */
+@layer utilities {
+  .card-shadow {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  .card-shadow-hover {
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.06),
+      0 2px 4px rgba(0, 0, 0, 0.03);
+  }
+
+  .card-shadow-lg {
+    box-shadow:
+      0 10px 20px rgba(0, 0, 0, 0.06),
+      0 4px 8px rgba(0, 0, 0, 0.03);
+  }
+
+  .gradient-violet {
+    background: linear-gradient(135deg, #7C6FFF 0%, #6A5BFF 100%);
+  }
+
+  .gradient-blue {
+    background: linear-gradient(135deg, #5B9AFF 0%, #3F7DF4 100%);
+  }
+
+  .gradient-teal {
+    background: linear-gradient(135deg, #3DD6B5 0%, #2EC9A7 100%);
+  }
+
+  .gradient-purple {
+    background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%);
+  }
+
+  .gradient-cyan {
+    background: linear-gradient(135deg, #67E8F9 0%, #22D3EE 100%);
+  }
+
+  .gradient-pink {
+    background: linear-gradient(135deg, #F472B6 0%, #EC4899 100%);
+  }
+
+  .gradient-orange {
+    background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+  }
+
+  .gradient-emerald {
+    background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+  }
+
+  /* Удобные шорткаты под MSA-карточки и навигацию */
+ /* Базовая карточка MSA — как в макете */
+.msa-card {
+  @apply rounded-3xl
+         bg-white/80
+         border border-slate-200/80
+         shadow-[0_18px_40px_rgba(15,23,42,0.06)]
+         p-5 sm:p-6        /* внутренние отступы 20–24px, как в Figma */
+         transition-all duration-200
+         hover:-translate-y-0.5
+         hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)]
+         hover:border-slate-200;
+}
+
+  .msa-card-hover {
+    @apply hover:-translate-y-0.5 hover:bg-white hover:card-shadow-hover;
+  }
+
+  .msa-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium;
+  }
+
+  .msa-badge-primary {
+    @apply msa-badge bg-[color:var(--primary)] text-[color:var(--primary-foreground)];
+  }
+
+  .msa-badge-muted {
+    @apply msa-badge bg-[color:var(--muted)] text-[color:var(--muted-foreground)];
+  }
+
+  .msa-tab {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-full
+           text-sm font-medium text-slate-600 bg-transparent
+           hover:bg-[color:var(--secondary)];
+  }
+
+  .msa-tab-active {
+    @apply bg-[color:var(--primary)] text-[color:var(--primary-foreground)]
+           shadow-sm;
+  }
+
+  .msa-btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-full
+           text-sm font-medium
+           text-[color:var(--primary-foreground)]
+           bg-[color:var(--primary)]
+           hover:brightness-105 active:scale-[0.98]
+           transition-all;
+  }
+}
+@layer components {
+  .msa-page {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(123, 104, 238, 0.08), transparent 55%),
+      radial-gradient(circle at top right, rgba(63, 125, 244, 0.06), transparent 55%),
+      #F7F9FC;
+    color: var(--foreground);
+  }
+
+  .msa-layout-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .msa-main {
+    flex: 1 1 auto;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    padding-block: 1.75rem 2.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .msa-main {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .msa-main {
+      padding-inline: 2rem;
+      padding-top: 2.25rem;
+    }
+  }
+
+  .msa-card {
+    border-radius: 1.25rem;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 18px 40px rgba(15, 23, 42, 0.06),
+      0 2px 4px rgba(15, 23, 42, 0.02);
+    backdrop-filter: blur(18px);
+    transition:
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out,
+      border-color 150ms ease-out,
+      background-color 150ms ease-out;
+  }
+
+  .msa-card:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 22px 55px rgba(15, 23, 42, 0.12),
+      0 6px 10px rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.08);
+    background-color: #ffffff;
+  }
+
+  .msa-btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium;
+    background: linear-gradient(135deg, #7C6FFF 0%, #6A5BFF 50%, #3F7DF4 100%);
+    color: #ffffff;
+    box-shadow:
+      0 12px 24px rgba(106, 91, 255, 0.35),
+      0 2px 4px rgba(15, 23, 42, 0.05);
+    transition:
+      transform 120ms ease-out,
+      box-shadow 120ms ease-out,
+      filter 120ms ease-out;
+  }
+
+  .msa-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 18px 32px rgba(106, 91, 255, 0.45),
+      0 4px 8px rgba(15, 23, 42, 0.08);
+    filter: brightness(1.02);
+  }
+
+  .msa-btn-primary:active {
+    transform: translateY(0);
+    box-shadow:
+      0 10px 20px rgba(106, 91, 255, 0.35),
+      0 2px 4px rgba(15, 23, 42, 0.06);
+  }
+
+  .msa-badge-neutral {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium;
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border-color: rgba(148, 163, 184, 0.4);
+  }
+
+  .msa-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    background-color: rgba(248, 250, 252, 0.86);
+    backdrop-filter: blur(20px);
+  }
+
+  .msa-topbar-inner {
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    padding-block: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .msa-topbar-inner {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  .msa-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .msa-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  .msa-logo-mark {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7C6FFF 0%, #3F7DF4 100%);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 22px rgba(106, 91, 255, 0.45);
+  }
+
+  .msa-logo-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .msa-logo-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #111827;
+  }
+
+  .msa-logo-subtitle {
+    font-size: 0.7rem;
+    color: #6B7280;
+  }
+
+  .msa-nav {
+    display: none;
+    align-items: center;
+    gap: 0.6rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid rgba(209, 213, 219, 0.9);
+  }
+
+  @media (min-width: 1024px) {
+    .msa-nav {
+      display: inline-flex;
+    }
+  }
+
+  .msa-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 0.7rem;
+    padding-block: 0.35rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6B7280;
+    text-decoration: none;
+    transition: color 140ms ease-out, background-color 140ms ease-out;
+  }
+
+  .msa-nav-link:hover {
+    color: #111827;
+    background-color: rgba(209, 213, 219, 0.35);
+  }
+
+  .msa-nav-link--active {
+    color: #111827;
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+  }
+
+  .msa-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .msa-search {
+    position: relative;
+    flex: 1 1 auto;
+    max-width: 20rem;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .msa-search {
+      display: flex;
+    }
+  }
+
+  .msa-search-input {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid rgba(209, 213, 219, 0.9);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding-block: 0.45rem;
+    padding-inline: 2rem 2.2rem;
+    font-size: 0.8rem;
+    color: #111827;
+    outline: none;
+    transition:
+      border-color 140ms ease-out,
+      box-shadow 140ms ease-out,
+      background-color 140ms ease-out;
+  }
+
+  .msa-search-input::placeholder {
+    color: #9CA3AF;
+  }
+
+  .msa-search-input:focus {
+    border-color: #6A5BFF;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(106, 91, 255, 0.18), 0 0 0 6px rgba(106, 91, 255, 0.12);
+  }
+
+  .msa-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: #9CA3AF;
+  }
+
+  .msa-search-hint {
+    position: absolute;
+    right: 0.65rem;
+    font-size: 0.65rem;
+    color: #9CA3AF;
+    border-radius: 999px;
+    padding-inline: 0.4rem;
+    padding-block: 0.15rem;
+    border: 1px solid rgba(209, 213, 219, 0.9);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .msa-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .msa-user-meta {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  @media (min-width: 768px) {
+    .msa-user-meta {
+      display: flex;
+    }
+  }
+
+  .msa-user-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #111827;
+  }
+
+  .msa-user-role {
+    font-size: 0.7rem;
+    color: #9CA3AF;
+  }
+
+  .msa-user-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7C6FFF 0%, #3F7DF4 100%);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 10px 22px rgba(106, 91, 255, 0.45);
+  }
+
+  .msa-link {
+    @apply text-xs font-medium text-slate-500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    text-decoration: none;
+    transition: color 140ms ease-out, transform 140ms ease-out;
+  }
+
+  .msa-link:hover {
+    color: #111827;
+    transform: translateX(1px);
+  }
+}

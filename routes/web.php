@@ -1,0 +1,61 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\KnowledgeController;
+use App\Http\Controllers\SearchController;
+
+use App\Http\Controllers\Admin\NewsController as AdminNewsController;
+use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
+use App\Http\Controllers\Admin\EventController as AdminEventController;
+use App\Http\Controllers\Admin\KnowledgeController as AdminKnowledgeController;
+
+// Главная – всегда публичная
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+
+// --- ПУБЛИЧНАЯ ЧАСТЬ (без auth) ---
+
+// Новости
+Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{news}', [NewsController::class, 'show'])->name('news.show');
+
+// Сотрудники
+Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
+
+// Мероприятия
+Route::get('/events', [EventController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
+
+// База знаний
+Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge.index');
+Route::get('/knowledge/{knowledge}', [KnowledgeController::class, 'show'])->name('knowledge.show');
+
+// Поиск
+Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+
+// --- АДМИНКА (только для авторизованных + роль admin) ---
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/', function () {
+            return view('admin.dashboard');
+        })->name('dashboard');
+
+        Route::resource('news', AdminNewsController::class);
+        Route::resource('employees', AdminEmployeeController::class);
+        Route::resource('events', AdminEventController::class);
+        Route::resource('knowledge', AdminKnowledgeController::class);
+    });
+
+
+// Auth (Breeze)
+require __DIR__.'/auth.php';
