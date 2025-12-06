@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\EmployeeController;
@@ -39,7 +39,13 @@ Route::get('/knowledge/{knowledge}', [KnowledgeController::class, 'show'])->name
 // Поиск
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
+Route::get('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
 
+    return redirect()->route('login');
+})->name('logout.get');
 // --- АДМИНКА (только для авторизованных + роль admin) ---
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')

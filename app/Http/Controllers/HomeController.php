@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\News;
 use App\Models\Event;
 use App\Models\Knowledge;
@@ -14,46 +15,40 @@ class HomeController extends Controller
     {
         $q = trim($request->get('q', ''));
 
-        // --- Новости ---
+        // Новости
         $newsQuery = News::query();
-
         if ($q !== '') {
             $newsQuery->where('title', 'like', "%{$q}%");
         }
-
         $news = $newsQuery
             ->orderBy('created_at', 'desc')
             ->limit(3)
             ->get();
 
-        // --- Мероприятия ---
+        // Мероприятия
         $eventsQuery = Event::whereNotNull('start_at');
-
         if ($q !== '') {
             $eventsQuery->where('title', 'like', "%{$q}%");
         }
-
         $events = $eventsQuery
             ->orderBy('start_at', 'asc')
             ->limit(3)
             ->get();
 
-        // --- Материалы базы знаний ---
+        // Материалы базы знаний
         $knowledgeQuery = Knowledge::query();
-
         if ($q !== '') {
-            $knowledgeQuery->where(function ($sub) use ($q) {
-                $sub->where('title', 'like', "%{$q}%")
-                    ->orWhere('content', 'like', "%{$q}%");
+            $knowledgeQuery->where(function ($qq) use ($q) {
+                $qq->where('title', 'like', "%{$q}%")
+                   ->orWhere('content', 'like', "%{$q}%");
             });
         }
-
         $knowledge = $knowledgeQuery
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        // --- Категории базы знаний для главной ---
+        // Базовые категории базы знаний
         $baseCategories = collect([
             ['code' => 'ved',            'label' => 'ВЭД'],
             ['code' => 'fundraising',    'label' => 'Привлечение финансирования'],
@@ -62,13 +57,12 @@ class HomeController extends Controller
             ['code' => 'private_office', 'label' => 'Private office'],
         ]);
 
-        // количество материалов по категориям
+        // Кол-во материалов по категориям
         $counts = Knowledge::selectRaw('category, COUNT(*) as cnt')
             ->groupBy('category')
-            ->pluck('cnt', 'category')
-            ->toArray();
+            ->pluck('cnt', 'category');
 
-        // приводим к объектам с code / label / items_count
+        // Превращаем в объекты с code/label/items_count (как в KnowledgeController)
         $knowledgeCategories = $baseCategories->map(function ($cat) use ($counts) {
             return (object) [
                 'code'        => $cat['code'],
@@ -77,24 +71,22 @@ class HomeController extends Controller
             ];
         });
 
-        // --- Сотрудники ---
+        // Сотрудники (левая часть)
         $employeesQuery = Employee::query();
-
         if ($q !== '') {
-            $employeesQuery->where(function ($sub) use ($q) {
-                $sub->where('full_name', 'like', "%{$q}%")
-                    ->orWhere('position', 'like', "%{$q}%");
+            $employeesQuery->where(function ($qq) use ($q) {
+                $qq->where('full_name', 'like', "%{$q}%")
+                   ->orWhere('position', 'like', "%{$q}%");
             });
         }
-
         $employees = $employeesQuery
-            ->orderBy('full_name')
+            ->orderBy('id', 'asc')
             ->limit(5)
             ->get();
 
-        // Контакты (ключевые сотрудники)
+        // Контакты (правая колонка)
         $contacts = Employee::where('is_contact', true)
-            ->orderBy('full_name')
+            ->orderBy('id', 'asc')
             ->limit(3)
             ->get();
 

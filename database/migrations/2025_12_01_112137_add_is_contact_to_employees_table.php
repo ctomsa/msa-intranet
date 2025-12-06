@@ -6,20 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
-{
-    Schema::table('employees', function (Blueprint $table) {
-        $table->boolean('is_contact')->default(false)->after('full_name');
-    });
-}
+    public function up(): void
+    {
+        // Если колонка уже существует — просто выходим
+        if (Schema::hasColumn('employees', 'is_contact')) {
+            return;
+        }
 
-public function down()
-{
-    Schema::table('employees', function (Blueprint $table) {
-        $table->dropColumn('is_contact');
-    });
-}
+        Schema::table('employees', function (Blueprint $table) {
+            // Если нет full_name — добавляем без "after", чтобы не падало
+            if (Schema::hasColumn('employees', 'full_name')) {
+                $table->boolean('is_contact')
+                    ->default(false)
+                    ->after('full_name');
+            } else {
+                $table->boolean('is_contact')
+                    ->default(false);
+            }
+        });
+    }
+
+    public function down(): void
+    {
+        if (!Schema::hasColumn('employees', 'is_contact')) {
+            return;
+        }
+
+        Schema::table('employees', function (Blueprint $table) {
+            $table->dropColumn('is_contact');
+        });
+    }
 };
