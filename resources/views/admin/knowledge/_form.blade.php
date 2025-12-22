@@ -99,27 +99,58 @@
     </div>
 
     <div>
-        <label class="msa-label" for="attachment">Файл-приложение</label>
-        <input
-            id="attachment"
-            type="file"
-            name="attachment"
-            class="msa-input"
-        >
-        @error('attachment')
-            <p class="msa-input-error">{{ $message }}</p>
-        @enderror
-
-        @if(!empty($knowledge?->attachment_url))
-            <div class="mt-2 text-sm">
-                Текущий файл:
-                <a href="{{ $knowledge->attachment_url }}" target="_blank" class="msa-link">
-                    Скачать
-                </a>
-            </div>
-        @endif
+    <label class="msa-label" for="attachments">Вложения (до 5 файлов)</label>
+    <input
+        id="attachments"
+        type="file"
+        name="attachments[]"
+        multiple
+        class="msa-input"
+    >
+    <div class="text-xs text-slate-500 mt-1">
+        Можно загрузить до 5 файлов. Каждый файл до 20 MB.
     </div>
 
+    @error('attachments')
+        <p class="msa-input-error">{{ $message }}</p>
+    @enderror
+    @error('attachments.*')
+        <p class="msa-input-error">{{ $message }}</p>
+    @enderror
+
+    {{-- Показ уже загруженных файлов (новая схема) --}}
+    @if(!empty($knowledge) && $knowledge->attachments && $knowledge->attachments->count())
+        <div class="mt-3 space-y-2 text-sm">
+            <div class="text-slate-500">Текущие файлы:</div>
+            @foreach($knowledge->attachments as $att)
+                <div>
+                    📎
+                    <a href="{{ asset('storage/'.$att->path) }}" target="_blank" class="msa-link">
+                        {{ $att->original_name ?? basename($att->path) }}
+                    </a>
+<button
+    type="submit"
+    form="delete-attachment-{{ $att->id }}"
+    class="text-xs text-red-600 hover:text-red-800"
+    onclick="return confirm('Удалить файл?')"
+>
+    Удалить
+</button>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    {{-- Fallback: старый одиночный файл (пока не удаляем) --}}
+    @if(!empty($knowledge?->attachment_url))
+        <div class="mt-3 text-sm">
+            Старый файл:
+            <a href="{{ $knowledge->attachment_url }}" target="_blank" class="msa-link">
+                Скачать
+            </a>
+        </div>
+    @endif
+</div>
     <div class="pt-4 flex justify-end gap-3">
         <a href="{{ route('admin.knowledge.index') }}" class="msa-btn-secondary">
             Отмена

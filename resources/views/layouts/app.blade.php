@@ -21,6 +21,14 @@
 
         {{-- Лого + левое меню --}}
         <div class="msa-topbar-left">
+
+@if(request()->is('admin') || request()->is('admin/*'))
+    <a href="{{ url('/admin') }}" class="msa-link text-sm"
+   style="margin-right:12px; white-space:nowrap; display:inline-flex; align-items:center;">
+    ← Админ-панель
+</a>
+@endif
+
             <a href="{{ route('home') }}" class="msa-logo flex items-center gap-3">
                 <img src="/images/msa-logo.png"
                      alt="MSA Logo"
@@ -34,14 +42,14 @@
 
             <nav class="msa-nav">
                 @php
-                    $navItems = [
-                        ['label' => 'Главная',    'route' => 'home'],
-                        ['label' => 'Сотрудники', 'route' => 'employees.index'],
-                        ['label' => 'База знаний','route' => 'knowledge.index'],
-                        ['label' => 'Новости',    'route' => 'news.index'],
-                        ['label' => 'Мероприятия','route' => 'events.index'],
-                    ];
-                @endphp
+$navItems = [
+    ['label' => 'Главная',     'route' => 'home',            'active' => 'home'],
+    ['label' => 'Сотрудники',  'route' => 'employees.index', 'active' => 'employees.*'],
+    ['label' => 'База знаний', 'route' => 'knowledge.index', 'active' => 'knowledge.*'],
+    ['label' => 'Новости',     'route' => 'news.index',      'active' => 'news.*'],
+    ['label' => 'Мероприятия', 'route' => 'events.index',    'active' => 'events.*'],
+    ['label' => 'Переговорки', 'route' => 'meeting-rooms.index', 'active' => 'meeting-rooms.*'],
+];                @endphp
 
                 @foreach($navItems as $item)
                     @php

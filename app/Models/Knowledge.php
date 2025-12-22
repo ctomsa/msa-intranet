@@ -50,4 +50,8 @@ class Knowledge extends Model
             default          => null,
         };
     }
+public function attachments()
+{
+    return $this->hasMany(\App\Models\KnowledgeAttachment::class, 'knowledge_id');
+}
 }

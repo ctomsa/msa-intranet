@@ -50,10 +50,11 @@ class KnowledgeController extends Controller
         ]);
     }
 
-    public function show(Knowledge $knowledge)
-    {
-        return view('knowledge.show', [
-            'item' => $knowledge,
-        ]);
-    }
-}
+   public function show(Knowledge $knowledge)
+{
+    $knowledge->load('attachments');
+
+    return view('knowledge.show', [
+        'item' => $knowledge,
+    ]);
+}}

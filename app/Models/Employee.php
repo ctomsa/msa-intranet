@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -15,5 +14,9 @@ class Employee extends Model
         'phone_mobile',
         'responsibilities',
         'avatar_path',
+'birthday',
+    ];
+    protected $casts = [
+        'birthday' => 'date',
     ];
 }

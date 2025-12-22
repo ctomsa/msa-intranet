@@ -31,6 +31,7 @@ class EmployeeController extends Controller
             'phone_mobile' => 'nullable',
             'responsibilities' => 'nullable',
             'avatar' => 'nullable|image',
+'birthday' => 'nullable|date',
         ]);
 
         if ($request->hasFile('avatar')) {
@@ -58,6 +59,7 @@ class EmployeeController extends Controller
             'phone_mobile' => 'nullable',
             'responsibilities' => 'nullable',
             'avatar' => 'nullable|image',
+'birthday' => 'nullable|date',
         ]);
 
         if ($request->hasFile('avatar')) {

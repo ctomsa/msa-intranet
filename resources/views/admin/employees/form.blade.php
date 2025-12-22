@@ -15,7 +15,17 @@
             required
         >
     </div>
-
+{{-- Дата рождения --}}
+<div>
+    <label class="msa-label" for="birthday">Дата рождения</label>
+    <input
+        type="date"
+        id="birthday"
+        name="birthday"
+        value="{{ old('birthday', !empty($employee?->birthday) ? $employee->birthday->format('Y-m-d') : '') }}"
+        class="msa-input"
+    >
+</div>
     {{-- Должность --}}
     <div>
         <label class="msa-label">Должность</label>

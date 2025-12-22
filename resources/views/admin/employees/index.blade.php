@@ -33,12 +33,14 @@
                             Телефон
                         </th>
                         <th class="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Отдел
-                        </th>
-                        <th class="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Действия
-                        </th>
-                    </tr>
+    Отдел
+</th>
+<th class="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+    День рождения
+</th>
+<th class="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+    Действия
+</th>                    </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                     @foreach($employees as $employee)
@@ -60,6 +62,13 @@
                             <td class="px-5 py-3 align-top text-sm text-slate-700">
                                 {{ $employee->department ?? '—' }}
                             </td>
+<td class="px-5 py-3 align-top text-sm text-slate-700" >
+    @if($employee->birthday)
+        🎂 {{ \Carbon\Carbon::parse($employee->birthday)->locale('ru')->translatedFormat('d F') }}
+    @else
+        —
+    @endif
+</td>
                             <td class="px-5 py-3 align-top text-right text-xs">
                                 <div class="inline-flex items-center gap-2">
                                     <a href="{{ route('admin.employees.edit', $employee) }}"

@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\MeetingRoom;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+
+class MeetingRoomController extends Controller
+{
+    public function index()
+    {
+        $rooms = MeetingRoom::query()
+            ->where('is_active', true)
+            ->with(['bookings' => function ($q) {
+                $q->whereBetween('date', [
+                        now()->startOfWeek()->toDateString(),
+                        now()->endOfWeek()->toDateString(),
+                    ])
+                    ->orderBy('date')
+                    ->orderBy('start_time');
+            }])
+            ->get();
+
+        return view('meeting-rooms.index', [
+            'rooms' => $rooms,
+        ]);
+    }
+
+public function show(MeetingRoom $room)
+{
+    $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY);
+    $weekEndExclusive = (clone $weekStart)->addDays(5); // Пн..Пт (не включая Сб)
+
+    $days = collect(range(0, 4))->map(fn ($i) => (clone $weekStart)->addDays($i));
+
+    $bookings = $room->bookings()
+        ->whereDate('date', '>=', $weekStart->toDateString())
+        ->whereDate('date', '<', $weekEndExclusive->toDateString())
+        ->orderBy('date')
+        ->orderBy('start_time')
+        ->get();
+
+    return view('meeting-rooms.show', [
+        'room' => $room,
+        'bookings' => $bookings,
+        'weekStart' => $weekStart,
+        'days' => $days,
+    ]);
+}}

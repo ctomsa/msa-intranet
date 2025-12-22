@@ -85,15 +85,31 @@
             </div>
 
             {{-- Прикреплённый файл / картинка --}}
-            @if(!empty($item->attachment_path))
-                <div class="mt-6 pt-4 border-t border-slate-100">
-                    <a href="{{ asset('storage/'.$item->attachment_path) }}"
-                       target="_blank"
-                       class="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900 msa-link">
-                        📎 Открыть вложение
-                    </a>
-                </div>
-            @endif
+            {{-- Вложения --}}
+@if($item->relationLoaded('attachments') ? $item->attachments->count() : $item->attachments()->count())
+    <div class="mt-6 pt-4 border-t border-slate-100">
+        <div class="text-sm font-semibold text-slate-700 mb-3">Вложения</div>
+
+        <div class="space-y-2">
+            @foreach($item->attachments as $att)
+                <a href="{{ asset('storage/'.$att->path) }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900 msa-link">
+                    📎 {{ $att->original_name ?? basename($att->path) }}
+                </a>
+            @endforeach
+        </div>
+    </div>
+
+@elseif(!empty($item->attachment_path))
+    <div class="mt-6 pt-4 border-t border-slate-100">
+        <a href="{{ asset('storage/'.$item->attachment_path) }}"
+           target="_blank"
+           class="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900 msa-link">
+            📎 Открыть вложение
+        </a>
+    </div>
+@endif
         </article>
 
         <div>

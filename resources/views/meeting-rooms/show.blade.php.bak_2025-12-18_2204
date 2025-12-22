@@ -1,0 +1,246 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+@php
+    $u = auth()->user();
+    $isAdmin =
+        $u &&
+        (
+            ($u->is_admin ?? false) ||
+            ($u->isAdmin ?? false) ||
+            (method_exists($u, 'isAdmin') && $u->isAdmin())
+        );
+
+    $today = \Carbon\Carbon::now()->startOfDay();
+@endphp    <div class="text-sm text-slate-500">
+        <a href="{{ route('meeting-rooms.index') }}" class="hover:underline">Переговорки</a>
+        → {{ $room->name }}
+    </div>
+
+    <div class="flex items-start justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-semibold">{{ $room->name }}</h1>
+        <div class="text-sm text-slate-600 mt-1">
+            Рабочее время: {{ $room->work_start }} – {{ $room->work_end }}
+        </div>
+    </div>
+
+    @if($isAdmin)
+        <a href="{{ route('admin.meeting-bookings.create', ['room_id' => $room->id]) }}"
+           class="msa-btn-primary whitespace-nowrap">
+            + Добавить встречу
+        </a>
+    @endif
+</div>
+
+    $u = auth()->user();
+    $isAdmin =
+        $u &&
+        (
+            ($u->is_admin ?? false) ||
+            ($u->isAdmin ?? false) ||
+            (method_exists($u, 'isAdmin') && $u->isAdmin())
+        );
+
+    // Сетка: 08:00–20:00, шаг 15 минут
+    $dayStart = 8 * 60;
+    $dayEnd   = 20 * 60;
+    $step     = 15; // минут
+    $rows     = intval(($dayEnd - $dayStart) / $step); // 48
+
+    // Чтобы подсветить "сегодня" (если попадает в диапазон Пн–Пт)
+    $today = Carbon::now()->startOfDay();
+@endphp
+
+<style>
+  .sched-grid {
+    display: grid;
+    grid-template-columns: 84px repeat(5, minmax(180px, 1fr));
+    grid-template-rows: 44px repeat(48, 26px);
+    gap: 0;
+  }
+  .sched-cell {
+    border: 1px solid rgba(226,232,240,.8);
+  }
+  .sched-header {
+    background: rgba(248,250,252,.9);
+    font-size: 12px;
+    color: #475569;
+  }
+  .sched-time {
+    background: rgba(248,250,252,.9);
+    font-size: 12px;
+    color: #64748b;
+    padding: 6px 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .sched-col-today {
+    background: rgba(106,91,255,.06);
+  }
+  .booking-block {
+    border-radius: 12px;
+    padding: 10px 10px;
+    box-shadow: 0 8px 24px rgba(2,6,23,.08);
+    color: white;
+    overflow: hidden;
+    position: relative;
+  }
+</style>
+
+<div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <div class="text-lg font-semibold">Расписание на неделю</div>
+            <div class="text-sm text-slate-500">
+                {{ $weekStart->format('d.m') }} — {{ $weekStart->copy()->addDays(4)->format('d.m') }}
+            </div>
+        </div>
+
+        @if($isAdmin)
+            <a href="{{ route('admin.meeting-bookings.create', ['room_id' => $room->id]) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">
+                + Добавить встречу
+            </a>
+        @endif
+    </div>
+
+    <div class="overflow-x-auto">
+        <div class="min-w-[980px] sched-grid">
+            {{-- header row --}}
+            <div class="sched-cell sched-header"></div>
+
+            @foreach($days as $di => $d)
+                @php $isTodayCol = $d->isSameDay($today); @endphp
+                <div class="sched-cell sched-header px-3 py-2 {{ $isTodayCol ? 'sched-col-today' : '' }}">
+                    <div class="{{ $isTodayCol ? 'text-indigo-700 font-semibold' : '' }}">
+                        {{ $d->locale('ru')->isoFormat('ddd, DD.MM') }}
+                    </div>
+                    @if($isTodayCol)
+                        <div class="text-indigo-600 text-xs">Сегодня</div>
+                    @endif
+                </div>
+            @endforeach
+
+            {{-- time rows + empty cells --}}
+            @for($r = 0; $r < $rows; $r++)
+                @php
+                    $minutes = $dayStart + $r * $step;
+                    $label = null;
+
+                    // чтобы не заспамить — показываем метку времени раз в час
+                    if (($minutes % 60) === 0) {
+                        $label = sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60);
+                    }
+                @endphp
+
+                <div class="sched-cell sched-time">
+                    <span>{{ $label }}</span>
+                </div>
+
+                @foreach($days as $di => $d)
+                    @php $isTodayCol = $d->isSameDay($today); @endphp
+                    <div class="sched-cell {{ $isTodayCol ? 'sched-col-today' : '' }}"></div>
+                @endforeach
+            @endfor
+
+            {{-- bookings overlay --}}
+            @foreach($bookings as $b)
+                @php
+                    $start = Carbon::parse($b->start_at);
+                    $end   = Carbon::parse($b->end_at);
+
+                    // Показываем только Пн–Пт текущей недели
+                    $dayIndex = $days->search(fn($d) => $d->isSameDay($start));
+                    if ($dayIndex === false) continue;
+
+                    // clamp на рабочее время (08–20), чтобы блоки не вылазили
+                    $startMin = max($dayStart, $start->hour * 60 + $start->minute);
+                    $endMin   = min($dayEnd, $end->hour * 60 + $end->minute);
+
+                    $duration = max($step, $endMin - $startMin);
+                    $rowStart = 2 + intval(($startMin - $dayStart) / $step); // +2 row header
+                    $rowSpan  = max(1, intval(ceil($duration / $step)));
+
+                    $col = 2 + $dayIndex; // col1 time, then 5 day cols
+                @endphp
+
+                <div
+                    style="
+                        grid-column: {{ $col }};
+                        grid-row: {{ $rowStart }} / span {{ $rowSpan }};
+                        z-index: 5;
+                        margin: 2px 6px;
+                        background: #6A5BFF;
+                    "
+                    class="booking-block"
+                    title="{{ $start->format('H:i') }}–{{ $end->format('H:i') }} • {{ $b->title ?? '' }}"
+                >
+                    <div class="text-sm font-semibold">
+                        {{ $start->format('H:i') }} — {{ $end->format('H:i') }}
+                    </div>
+
+                    @if(!empty($b->booked_by))
+                        <div class="text-xs opacity-90 mt-1">👤 {{ $b->booked_by }}</div>
+                    @endif
+
+                    @if(!empty($b->title))
+                        <div class="text-xs opacity-90 mt-1 line-clamp-2">
+                            {{ $b->title }}
+                        </div>
+                    @endif
+
+                    @if($isAdmin)
+                        <div class="absolute top-2 right-2 flex gap-2 text-xs">
+                            <a class="underline opacity-95 hover:opacity-100"
+                               href="{{ route('admin.meeting-bookings.edit', $b) }}">Ред</a>
+
+                            <form method="POST" action="{{ route('admin.meeting-bookings.destroy', $b) }}"
+                                  onsubmit="return confirm('Удалить встречу?');">
+                                @csrf
+                                @method('DELETE')
+                                <button class="underline opacity-95 hover:opacity-100" type="submit">×</button>
+                            </form>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    @if($bookings->isEmpty())
+        <div class="mt-4 text-sm text-slate-500">
+            На этой неделе встреч нет.
+        </div>
+    @endif
+</div>
+    @if($isAdmin)
+        <div class="flex items-center gap-3 whitespace-nowrap">
+            <a class="msa-link text-sm"
+               href="{{ route('admin.meeting-bookings.edit', $booking) }}">
+                Редактировать
+            </a>
+
+            <form method="POST"
+                  action="{{ route('admin.meeting-bookings.destroy', $booking) }}"
+                  onsubmit="return confirm('Удалить встречу?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="text-sm text-red-600 hover:underline">
+                    Удалить
+                </button>
+            </form>
+        </div>
+    @endif
+</div>
+        @empty
+            <div class="text-sm text-slate-500">
+                На этой неделе встреч нет
+            </div>
+        @endforelse
+    </div>
+
+</div>
+@endsection

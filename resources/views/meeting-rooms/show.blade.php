@@ -1,0 +1,346 @@
+@extends('layouts.app')
+
+@section('content')
+@php
+    use Carbon\Carbon;
+
+    $isAdmin = $isAdmin ?? (auth()->check() && (bool) (auth()->user()->is_admin ?? false));
+
+    $today = Carbon::today();
+
+    // 15 минут шаг сетки
+    $step = 15;
+
+    // Рабочее время комнаты
+    $workStart = Carbon::createFromFormat('H:i:s', $room->work_start ?? '08:00:00');
+    $workEnd   = Carbon::createFromFormat('H:i:s', $room->work_end ?? '20:00:00');
+
+    $dayStart = $workStart->hour * 60 + $workStart->minute; // минуты
+    $dayEnd   = $workEnd->hour * 60 + $workEnd->minute;     // минуты
+
+    // Кол-во строк по времени (каждые 15 минут)
+    $slotsCount = (int) ceil(($dayEnd - $dayStart) / $step); // 48 для 08:00-20:00
+    $totalGridRows = 1 + $slotsCount; // +1 header row
+
+    // Подготовим быстрый доступ: bookings уже пришли из контроллера
+@endphp
+
+<style>
+.page-wrap { max-width: 1320px !important; width: 100% !important; margin: 0 auto; padding: 32px 18px; }
+.card { width: 100% !important; }
+
+/* --- Make weekly schedule wide even when empty --- */
+.mr-week-card,
+.mr-schedule-card,
+.week-card,
+.schedule-card {
+    width: 100% !important;
+    max-width: 1100px;          /* можешь поставить 1200/1320 */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* если у тебя контейнер таблицы называется иначе — это ок, table всё равно растянется */
+.mr-week-table,
+.mr-schedule-table,
+.week-table,
+.schedule-table,
+table {
+    width: 100% !important;
+    table-layout: fixed;        /* чтобы колонки ровно делили ширину */
+}
+
+/* --- Force schedule area to stretch full width --- */
+.mr-week-wrap,
+.mr-schedule-wrap,
+.week-wrap,
+.schedule-wrap {
+  display: flex;
+  justify-content: stretch;
+  align-items: stretch;
+}
+
+.mr-week-card,
+.mr-schedule-card,
+.week-card,
+.schedule-card {
+  flex: 1 1 auto;
+  width: 100% !important;
+  max-width: 1320px; /* как page-wrap */
+}
+
+.mr-week-table th, .mr-week-table td,
+.mr-schedule-table th, .mr-schedule-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mr-breadcrumb { font-size:14px; margin-bottom: 14px; display:flex; align-items:center; gap:10px; }
+.mr-back { color:#6A5BFF; text-decoration:none; font-weight:600; }
+.mr-back:hover { text-decoration: underline; }
+.mr-sep { color:#9ca3af; }
+    .mr-topbar { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-top: 18px; }
+    .mr-btn {
+        display:inline-flex; align-items:center; gap:8px;
+        background:#6A5BFF; color:white; border-radius:999px;
+        padding:12px 16px; font-weight:600; text-decoration:none;
+        box-shadow: 0 10px 24px rgba(106,91,255,.22);
+        border: 0;
+    }
+    .mr-btn:hover { filter: brightness(0.98); }
+
+    .card {
+        margin-top: 18px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 18px 50px rgba(16,24,40,.08);
+        padding: 22px;
+        border: 1px solid rgba(17,24,39,.06);
+width: 100%; 
+    }
+    .card-h { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .card-title { font-size: 20px; font-weight: 800; color:#111827; margin:0; }
+    .card-dates { color:#6b7280; font-size:14px; margin-top:4px; }
+
+    /* GRID */
+    .sched {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 88px repeat(5, 1fr);
+        grid-template-rows: 48px repeat(var(--slots), 26px);
+        gap: 0;
+        border: 1px solid rgba(17,24,39,.10);
+        border-radius: 14px;
+        overflow: hidden;
+        position: relative;
+        background: #fff;
+    }
+
+    .sched-head {
+        display:flex; align-items:center; justify-content:center;
+        font-weight: 700; font-size: 14px; color:#111827;
+        border-bottom: 1px solid rgba(17,24,39,.10);
+        background: #fbfcff;
+    }
+    .sched-head small { display:block; font-weight:600; color:#6b7280; margin-top:2px; }
+
+    .sched-time {
+        padding-left: 12px;
+        display:flex; align-items:center;
+        font-size: 13px; color:#64748b;
+        border-right: 1px solid rgba(17,24,39,.08);
+        border-bottom: 1px solid rgba(17,24,39,.06);
+        background: #fff;
+    }
+
+    .sched-cell {
+        border-bottom: 1px solid rgba(17,24,39,.06);
+        border-right: 1px solid rgba(17,24,39,.06);
+        background: #fff;
+    }
+
+    .sched-col-today {
+        background: rgba(106,91,255,.06);
+    }
+    .sched-head-today {
+        background: rgba(106,91,255,.10);
+        color:#3b33cc;
+    }
+
+    /* Booking blocks (overlay) */
+    .booking {
+        background:#6A5BFF;
+        color:#fff;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 3px 8px;
+        box-shadow: 0 14px 34px rgba(106,91,255,.22);
+        overflow: hidden;
+        position: relative;
+        z-index: 5;
+        font-size: 13px;
+    }
+    .booking .t { font-weight: 800; font-size: 14px; }
+    .booking .a { margin-top: 6px; opacity: .92; }
+    .booking .d { margin-top: 3px; opacity: .92; }
+
+    .booking-actions {
+        position:absolute; right:10px; bottom:8px;
+        display:flex; gap:10px; align-items:center;
+        font-size: 12px;
+    }
+    .booking-actions a {
+        color: rgba(255,255,255,.92);
+        text-decoration: underline;
+        font-weight: 600;
+    }
+    .booking-actions button {
+        background: transparent;
+        border: 0;
+        color: rgba(255,255,255,.92);
+        text-decoration: underline;
+        font-weight: 700;
+        cursor:pointer;
+        padding:0;
+    }
+.mr-week-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  text-decoration:none;
+  background:#fff;
+  border:1px solid rgba(17,24,39,.08);
+  box-shadow: 0 10px 24px rgba(16,24,40,.06);
+  color:#111827;
+  font-weight:700;
+}
+.mr-week-btn:hover{ filter: brightness(.99); }
+.mr-header-card{
+    margin-top: 14px;
+    background:#fff;
+    border-radius:18px;
+    padding:18px 18px;
+    border:1px solid rgba(17,24,39,.06);
+    box-shadow: 0 18px 50px rgba(16,24,40,.06);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+}
+.mr-header-left{ display:flex; flex-direction:column; gap:8px; }
+.mr-header-title{ font-weight:800; color:#111827; font-size:18px; }
+.mr-header-meta{ display:flex; gap:18px; color:#6b7280; font-size:14px; flex-wrap:wrap; }
+.mr-meta-item{ display:flex; align-items:center; gap:8px; }
+
+</style>
+
+<div class="page-wrap">
+<div class="mr-breadcrumb">
+    <a href="{{ route('meeting-rooms.index') }}" class="mr-back">← Переговорки</a>
+    <span class="mr-sep">/</span>
+    <span>{{ $room->name }}</span>
+</div>
+    <div class="mr-topbar">
+        <div>
+            <h1 class="mr-title">{{ $room->name }}</h1>
+            <div class="mr-sub">Рабочее время: {{ $room->work_start }} – {{ $room->work_end }}</div>
+        </div>
+
+        @if($isAdmin)
+            <a class="mr-btn" href="{{ route('admin.meeting-bookings.create', ['room_id' => $room->id]) }}">+ Добавить встречу</a>
+        @endif
+    </div>
+
+    <div class="card">
+        <div class="card-h">
+<div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+  <div>
+    <div class="mr-card-title">Расписание на неделю</div>
+    <div class="mr-card-sub">
+      {{ $weekStart->format('d.m') }} — {{ $weekStart->copy()->addDays(4)->format('d.m') }}
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px;">
+    <a class="mr-week-btn" href="{{ route('meeting-rooms.show', $room) }}?week={{ $prevWeek->toDateString() }}">←</a>
+    <a class="mr-week-btn" href="{{ route('meeting-rooms.show', $room) }}?week={{ $nextWeek->toDateString() }}">→</a>
+  </div>
+</div>
+        </div>
+
+        <div class="sched" style="--slots: {{ $slotsCount }};">
+            {{-- Header row --}}
+            <div class="sched-head" style="grid-column: 1; grid-row: 1;"></div>
+
+            @foreach($days as $i => $d)
+                @php $isTodayCol = $d->isSameDay($today); @endphp
+                <div class="sched-head {{ $isTodayCol ? 'sched-head-today' : '' }}"
+                     style="grid-column: {{ 2 + $i }}; grid-row: 1;">
+                    <div style="text-align:center; line-height:1.1;">
+{{ mb_strtolower($d->locale('ru')->translatedFormat('D')) }}, {{ $d->format('d.m') }}
+                        @if($isTodayCol)
+                            <small>Сегодня</small>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+
+            {{-- Grid cells + time labels --}}
+            @for($r = 0; $r < $slotsCount; $r++)
+                @php
+                    $minutes = $dayStart + $r * $step;
+                    $label = Carbon::createFromTime(0,0)->addMinutes($minutes)->format('H:i');
+                    $gridRow = 2 + $r; // row 1 is header
+                @endphp
+
+                <div class="sched-time" style="grid-column: 1; grid-row: {{ $gridRow }};">
+                    {{ $label }}
+                </div>
+
+                @foreach($days as $i => $d)
+                    @php $isTodayCol = $d->isSameDay($today); @endphp
+                    <div class="sched-cell {{ $isTodayCol ? 'sched-col-today' : '' }}"
+                         style="grid-column: {{ 2 + $i }}; grid-row: {{ $gridRow }};">
+                    </div>
+                @endforeach
+            @endfor
+
+            {{-- Bookings overlay --}}
+            @foreach($bookings as $b)
+                @php
+                    // ВАЖНО: используем $b (не $booking)
+                    $date = Carbon::parse($b->date)->startOfDay();
+                    $start = Carbon::parse($b->date)->setTimeFromTimeString($b->start_time);
+                    $end   = Carbon::parse($b->date)->setTimeFromTimeString($b->end_time);
+
+                    $dayIndex = $days->search(fn($d) => $d->isSameDay($date));
+                    if ($dayIndex === false) continue;
+
+                    $startMin = max($dayStart, $start->hour * 60 + $start->minute);
+                    $endMin   = min($dayEnd, $end->hour * 60 + $end->minute);
+
+                    $duration = max($step, $endMin - $startMin);
+                    $rowStart = 2 + (int)(($startMin - $dayStart) / $step);
+                    $rowSpan  = max(1, (int) ceil($duration / $step));
+
+                    $col = 2 + (int) $dayIndex;
+                @endphp
+
+                <div class="booking"
+                     style="grid-column: {{ $col }}; grid-row: {{ $rowStart }} / span {{ $rowSpan }};"
+                     title="{{ $start->format('H:i') }}–{{ $end->format('H:i') }}">
+                    <div class="t">{{ $start->format('H:i') }} — {{ $end->format('H:i') }}</div>
+
+                    @if(!empty($b->author_name))
+                        <div class="a">👤 {{ $b->author_name }}</div>
+                    @endif
+
+                    @if(!empty($b->title))
+                        <div class="d">{{ $b->title }}</div>
+                    @elseif(!empty($b->comment))
+                        <div class="d">{{ $b->comment }}</div>
+                    @endif
+
+                    @if($isAdmin)
+                        <div class="booking-actions">
+                            <a href="{{ route('admin.meeting-bookings.edit', $b->id) }}">Ред</a>
+
+                            <form method="POST" action="{{ route('admin.meeting-bookings.destroy', $b->id) }}"
+                                  onsubmit="return confirm('Удалить встречу?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit">×</button>
+                            </form>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+</div> {{-- end .page-wrap --}}
+@endsection

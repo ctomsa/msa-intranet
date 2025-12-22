@@ -44,6 +44,12 @@
                                 {{ $employee->full_name }}
                             </div>
 
+
+@if(!empty($employee->birthday))
+    <div style="margin-top: 4px; font-size: 14px;">
+        🎂 {{ $employee->birthday->locale('ru')->translatedFormat('d F') }}
+    </div>
+@endif
                             @if(!empty($employee->position))
                                 <div class="text-xs text-slate-500 truncate">
                                     {{ $employee->position }}

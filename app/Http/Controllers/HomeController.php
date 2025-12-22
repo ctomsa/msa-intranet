@@ -8,7 +8,7 @@ use App\Models\Event;
 use App\Models\Knowledge;
 use App\Models\Employee;
 use Illuminate\Http\Request;
-
+use Carbon\Carbon;
 class HomeController extends Controller
 {
     public function index(Request $request)
@@ -89,7 +89,12 @@ class HomeController extends Controller
             ->orderBy('id', 'asc')
             ->limit(3)
             ->get();
-
+// Дни рождения в текущем календарном месяце
+$birthdays = Employee::query()
+    ->whereNotNull('birthday')
+    ->whereMonth('birthday', Carbon::now()->month)
+    ->orderByRaw('DAY(birthday)')
+    ->get();
         return view('home', [
             'news'                => $news,
             'events'              => $events,
@@ -98,6 +103,7 @@ class HomeController extends Controller
             'contacts'            => $contacts,
             'knowledgeCategories' => $knowledgeCategories,
             'q'                   => $q,
-        ]);
+            'birthdays'           => $birthdays,       
+ ]);
     }
 }

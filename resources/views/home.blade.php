@@ -4,16 +4,17 @@
     <div class="space-y-8 lg:space-y-10">
         {{-- HERO / баннер --}}
         <section class="msa-card msa-card-hero">
-            <div class="flex flex-col gap-4 lg:gap-6">
-                <div>
-                    <h1 class="text-2xl lg:text-3xl font-semibold tracking-tight text-slate-900">
-                        Добро пожаловать в портал MSA
-                    </h1>
-                    <p class="mt-2 text-sm lg:text-base text-slate-500 max-w-2xl">
-                        Центральная площадка для новостей, документов, контактов и корпоративных мероприятий компании.
-                    </p>
-                </div>
-            </div>
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-semibold tracking-tight text-slate-900">
+            MSA Intranet
+        </h1>
+        <p class="mt-2 text-sm lg:text-base text-slate-500 max-w-2xl">
+            Новости, база знаний, контакты и мероприятия компании.
+        </p>
+    </div>
+
+    </div>
         </section>
 
         {{-- Основная сетка: Новости / База знаний / Мероприятия + Контакты --}}
@@ -214,6 +215,38 @@
                         </div>
                     </div>
 
+
+{{-- Дни Рождения --}}
+@if(isset($birthdays))
+    <section class="mt-6">
+        <div class="msa-card h-full flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
+                    🎂 Дни рождения в этом месяце:
+                </h2>
+            </div>
+
+            <div class="space-y-3">
+@if($birthdays->count())
+    @foreach($birthdays as $employee)
+        <div class="msa-card border border-slate-200 bg-white/80 p-4">
+            <div class="text-sm font-semibold text-slate-900">
+                {{ \Carbon\Carbon::parse($employee->birthday)->locale('ru')->translatedFormat('d F') }}
+            </div>
+            <div class="text-sm text-slate-600">
+                 {{ $employee->full_name }}
+            </div>
+        </div>
+    @endforeach
+@else
+    <p class="text-sm text-slate-500">
+        В этом месяце дней рождений нет 🎂
+    </p>
+@endif
+            </div>
+        </div>
+    </section>
+@endif
                     {{-- Контакты / ключевые сотрудники --}}
                     <div class="msa-card h-full flex flex-col">
                         <div class="flex items-center justify-between mb-4">

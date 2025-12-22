@@ -36,6 +36,12 @@ Route::get('/events/{event}', [EventController::class, 'show'])->name('events.sh
 Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge.index');
 Route::get('/knowledge/{knowledge}', [KnowledgeController::class, 'show'])->name('knowledge.show');
 
+Route::get('/meeting-rooms', [\App\Http\Controllers\MeetingRoomController::class, 'index'])
+    ->name('meeting-rooms.index');
+
+Route::get('/meeting-rooms/{room}', [\App\Http\Controllers\MeetingRoomController::class, 'show'])
+    ->name('meeting-rooms.show');
+
 // Поиск
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
@@ -59,7 +65,11 @@ Route::middleware(['auth', 'admin'])
         Route::resource('news', AdminNewsController::class);
         Route::resource('employees', AdminEmployeeController::class);
         Route::resource('events', AdminEventController::class);
+	Route::resource('meeting-bookings', \App\Http\Controllers\Admin\MeetingBookingController::class)
+    ->except(['show']);
         Route::resource('knowledge', AdminKnowledgeController::class);
+Route::delete('knowledge/attachments/{attachment}', [AdminKnowledgeController::class, 'destroyAttachment'])
+    ->name('knowledge.attachments.destroy');
     });
 
 

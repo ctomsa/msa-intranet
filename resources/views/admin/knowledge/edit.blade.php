@@ -18,6 +18,20 @@
             @method('PUT')
             @include('admin.knowledge._form', ['knowledge' => $knowledge, 'categories' => $categories])
         </form>
+{{-- Hidden forms for deleting attachments (must be outside the main edit form) --}}
+@if(!empty($knowledge) && $knowledge->attachments && $knowledge->attachments->count())
+    @foreach($knowledge->attachments as $att)
+        <form
+            id="delete-attachment-{{ $att->id }}"
+            method="POST"
+            action="{{ route('admin.knowledge.attachments.destroy', $att->id) }}"
+            style="display:none;"
+        >
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
+@endif
     </div>
 </div>
 @endsection
