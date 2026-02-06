@@ -43,17 +43,12 @@ class MeetingBookingService
         }
 
         // пересечения
-        $conflictQuery = MeetingBooking::query()
-            ->where('meeting_room_id', $room->id)
-            ->where('date', $date)
-            ->where(function ($q) use ($startTime, $endTime) {
-                $q->whereBetween('start_time', [$startTime, $endTime])
-                  ->orWhereBetween('end_time', [$startTime, $endTime])
-                  ->orWhere(function ($q2) use ($startTime, $endTime) {
-                      $q2->where('start_time', '<', $startTime)
-                         ->where('end_time', '>', $endTime);
-                  });
-            });
+	// пересечения (разрешаем "стык": конец = начало)
+$conflictQuery = MeetingBooking::query()
+    ->where('meeting_room_id', $room->id)
+    ->where('date', $date)
+    ->where('start_time', '<', $endTime)   // существующая начинается раньше конца новой
+    ->where('end_time', '>', $startTime);  // существующая заканчивается позже начала новой
 
         if ($ignoreBookingId) {
             $conflictQuery->where('id', '!=', $ignoreBookingId);

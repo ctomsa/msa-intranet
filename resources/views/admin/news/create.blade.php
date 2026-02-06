@@ -1,8 +1,13 @@
 <x-app-layout>
     <x-slot name="header">Добавить новость</x-slot>
+<div style="padding:8px;margin:10px 0;border:2px dashed red;">
+    DEBUG: create.blade.php UPDATED {{ now() }}
+</div>
 
-    <form method="POST" action="{{ route('admin.news.store') }}">
-        @csrf
+<form method="POST"
+      action="{{ route('admin.news.store') }}"
+      enctype="multipart/form-data">
+    @csrf
 
         <label>Название</label>
         <input type="text" name="title" class="w-full border mb-4">
@@ -17,6 +22,11 @@
         <input type="checkbox" name="is_pinned" value="1" class="mr-2">
         Важная новость
     </label>
+
+<div class="form-group" style="margin-top:12px;">
+    <label>Файл</label>
+    <input type="file" name="attachment" class="form-control">
+</div>
 
     <div class="mt-6">
         <button

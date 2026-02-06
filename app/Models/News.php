@@ -18,6 +18,8 @@ class News extends Model
     'content',
     'published_at',
     'author_id', 
+'attachment_path',
+'attachment_name',
 ];
 
 protected $casts = [

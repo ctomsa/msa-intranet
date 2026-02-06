@@ -31,8 +31,9 @@ class EmployeeController extends Controller
             'phone_mobile' => 'nullable',
             'responsibilities' => 'nullable',
             'avatar' => 'nullable|image',
-'birthday' => 'nullable|date',
-        ]);
+	'birthday' => 'nullable|date',
+'group' => 'nullable|string|in:Дирекция,Отдел продаж 1,Отдел продаж 2,Финансовый блок,Операционный блок,Отдел развития',
+]);
 
         if ($request->hasFile('avatar')) {
             $data['avatar_path'] = $request->file('avatar')->store('avatars', 'public');
@@ -60,6 +61,7 @@ class EmployeeController extends Controller
             'responsibilities' => 'nullable',
             'avatar' => 'nullable|image',
 'birthday' => 'nullable|date',
+'group' => 'nullable|string|in:Дирекция,Отдел продаж 1,Отдел продаж 2,Финансовый блок,Операционный блок,Отдел развития',
         ]);
 
         if ($request->hasFile('avatar')) {

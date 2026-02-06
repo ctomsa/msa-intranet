@@ -606,3 +606,53 @@
     transform: translateX(1px);
   }
 }
+
+/* Mobile content fixes (no header changes) */
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden; }
+
+  /* пусть контент реально влезает в экран */
+  .msa-page,
+  .msa-layout-shell,
+  .msa-main {
+    max-width: 100%;
+  }
+
+  /* основной контент — без лишних боковых отступов/фиксированных ширин */
+  .msa-main {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* любые сетки/ряды должны переноситься, а не выезжать */
+  .msa-main * {
+    min-width: 0;
+  }
+
+  /* длинные строки (ФИО/почта/должность) не должны ломать ширину */
+  .msa-main h1, .msa-main h2, .msa-main h3,
+  .msa-main p, .msa-main a, .msa-main span, .msa-main div {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+
+
+/* Home mobile spacing: unify gaps between blocks */
+.msa-home-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* desktop/tablet */
+}
+
+/* на всякий — убираем случайные внешние отступы у секций внутри стака */
+.msa-home-stack > * {
+  margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .msa-home-stack {
+    gap: 16px; /* mobile */
+  }
+}

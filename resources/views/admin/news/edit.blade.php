@@ -1,7 +1,9 @@
 <x-app-layout>
     <x-slot name="header">Редактировать новость</x-slot>
 
-    <form method="POST" action="{{ route('admin.news.update', $news) }}">
+<form method="POST"
+      action="{{ route('admin.news.update', $news) }}"
+      enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -20,6 +22,14 @@
             <input type="checkbox" name="is_pinned" value="1" @checked($news->is_pinned)>
             Важная новость
         </label>
+
+@if(!empty($news->attachment_path))
+    <div style="margin-top:8px;">
+        📎 <a href="{{ Storage::url($news->attachment_path) }}" target="_blank">
+            {{ $news->attachment_name }}
+        </a>
+    </div>
+@endif
 
         <button class="mt-4 px-4 py-2 bg-blue-600 text-white">Обновить</button>
     </form>

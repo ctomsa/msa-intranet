@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\News;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class NewsController extends Controller
 {
@@ -25,17 +26,21 @@ class NewsController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $data = $this->validatedData($request);
-        $data['author_id'] = auth()->id();
-        News::create($data);
+public function store(Request $request)
+{
+    $data = $this->validatedData($request);
+    $data['author_id'] = auth()->id();
 
-        return redirect()
-            ->route('admin.news.index')
-            ->with('success', 'Новость создана');
+    if ($request->hasFile('attachment')) {
+        $file = $request->file('attachment');
+        $data['attachment_path'] = $file->store('news', 'public');
+        $data['attachment_name'] = $file->getClientOriginalName();
     }
 
+    News::create($data);
+
+    return redirect()->route('admin.news.index')->with('success', 'Новость создана');
+}
     public function edit(News $news)
     {
         return view('admin.news.form', [
@@ -44,17 +49,24 @@ class NewsController extends Controller
         ]);
     }
 
-    public function update(Request $request, News $news)
-    {
-        $data = $this->validatedData($request);
+public function update(Request $request, News $news)
+{
+    $data = $this->validatedData($request);
 
-        $news->update($data);
+    if ($request->hasFile('attachment')) {
+        if ($news->attachment_path) {
+            Storage::disk('public')->delete($news->attachment_path);
+        }
 
-        return redirect()
-            ->route('admin.news.index')
-            ->with('success', 'Новость обновлена');
+        $file = $request->file('attachment');
+        $data['attachment_path'] = $file->store('news', 'public');
+        $data['attachment_name'] = $file->getClientOriginalName();
     }
 
+    $news->update($data);
+
+    return redirect()->route('admin.news.index')->with('success', 'Новость обновлена');
+}
     public function destroy(News $news)
     {
         $news->delete();
@@ -75,6 +87,5 @@ class NewsController extends Controller
             'content'      => ['nullable', 'string'],
             'published_at' => ['nullable', 'date'],
         ]);
-         $data['author_id'] = auth()->id();
     }
 }

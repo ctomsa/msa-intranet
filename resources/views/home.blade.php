@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="msa-home-stack">
     <div class="space-y-8 lg:space-y-10">
         {{-- HERO / баннер --}}
         <section class="msa-card msa-card-hero">
@@ -218,7 +219,7 @@
 
 {{-- Дни Рождения --}}
 @if(isset($birthdays))
-    <section class="mt-6">
+    <section>
         <div class="msa-card h-full flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
@@ -262,7 +263,7 @@
                         </div>
 
                         <div class="space-y-3">
-                            @foreach(($employees ?? collect())->take(3) as $employee)
+@foreach($contacts as $employee)
                                 <a href="{{ route('employees.show', $employee) }}"
                                    class="group msa-card border border-slate-200 bg-white/80
                                           p-4 sm:p-5 flex items-center gap-3
@@ -315,4 +316,5 @@
             </section>
         </div>
     </div>
+</div>
 @endsection

@@ -1,5 +1,7 @@
 @extends('layouts.app')
-
+<div class="mr-fullbleed">
+  <div class="mr-pagewrap">
+    <!-- ВЕСЬ текущий контент show.blade.php оставь внутри -->
 @section('content')
 @php
     use Carbon\Carbon;
@@ -29,15 +31,16 @@
 .page-wrap { max-width: 1320px !important; width: 100% !important; margin: 0 auto; padding: 32px 18px; }
 .card { width: 100% !important; }
 
-/* --- Make weekly schedule wide even when empty --- */
-.mr-week-card,
-.mr-schedule-card,
-.week-card,
-.schedule-card {
-    width: 100% !important;
-    max-width: 1100px;          /* можешь поставить 1200/1320 */
-    margin-left: auto;
-    margin-right: auto;
+.mr-fullbleed{
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+}
+
+.mr-pagewrap{
+  max-width:1320px;
+  margin:0 auto;
+  width:100%;
+  padding: 0 18px; /* можно 24 */
 }
 
 /* если у тебя контейнер таблицы называется иначе — это ок, table всё равно растянется */
@@ -45,10 +48,6 @@
 .mr-schedule-table,
 .week-table,
 .schedule-table,
-table {
-    width: 100% !important;
-    table-layout: fixed;        /* чтобы колонки ровно делили ширину */
-}
 
 /* --- Force schedule area to stretch full width --- */
 .mr-week-wrap,
@@ -102,6 +101,28 @@ width: 100%;
     .card-h { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
     .card-title { font-size: 20px; font-weight: 800; color:#111827; margin:0; }
     .card-dates { color:#6b7280; font-size:14px; margin-top:4px; }
+
+
+/* === Meeting room weekly schedule: keep it wide even when empty === */
+.mr-week-card {
+  width: 100%;
+  max-width: 1320px;      /* под твой .page-wrap */
+  margin: 0 auto;
+}
+
+.mr-week-table {
+  width: 100%;
+  table-layout: fixed;    /* ровные колонки */
+}
+
+/* чтобы длинные тексты не ломали ширину */
+.mr-week-table th,
+.mr-week-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
     /* GRID */
     .sched {
@@ -216,6 +237,93 @@ width: 100%;
 .mr-header-meta{ display:flex; gap:18px; color:#6b7280; font-size:14px; flex-wrap:wrap; }
 .mr-meta-item{ display:flex; align-items:center; gap:8px; }
 
+
+
+
+/* === FORCE wider content only on meeting-room page === */
+.msa-main{
+  max-width: none !important;          /* снимаем 80rem=1280px */
+  width: 100% !important;
+}
+
+/* твой page-wrap должен управлять шириной */
+.page-wrap{
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 18px;
+}
+
+/* карточка расписания не должна сама себя сжимать */
+/* Meeting rooms week grid */
+.mr-days{
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  align-items: start;
+}
+
+.mr-day-card{
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #e6e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.mr-day-header{
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef0f6;
+  font-weight: 700;
+}
+
+.mr-day-body{
+  padding: 12px 14px;
+}
+
+/* адаптив: на узких экранах можно сжимать */
+@media (max-width: 1024px){
+  .mr-days{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px){
+  .mr-days{ grid-template-columns: 1fr; }
+}
+.mr-day-title{
+  font-weight:700;
+  font-size:14px;
+  color:#111827;
+}
+.mr-day-body{ padding:12px; display:flex; flex-direction:column; gap:10px; }
+.mr-day-empty{ color:#6b7280; font-size:13px; padding:10px 0; }
+.mr-meeting {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.mr-meeting-time {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mr-meeting-title {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.mr-meeting-author,
+.mr-meeting-comment {
+  display: block;
+  font-size: 13px;
+  line-height: 1.25;
+  color: #6b7280;
+}
+
+.mr-meeting-actions {
+  margin-top: 6px;
+}
 </style>
 
 <div class="page-wrap">
@@ -252,95 +360,67 @@ width: 100%;
 </div>
         </div>
 
-        <div class="sched" style="--slots: {{ $slotsCount }};">
-            {{-- Header row --}}
-            <div class="sched-head" style="grid-column: 1; grid-row: 1;"></div>
+<div class="mr-days">
+    @php
+        $ruDays2 = [
+            'Mon' => 'пн',
+            'Tue' => 'вт',
+            'Wed' => 'ср',
+            'Thu' => 'чт',
+            'Fri' => 'пт',
+        ];
+    @endphp
 
-            @foreach($days as $i => $d)
-                @php $isTodayCol = $d->isSameDay($today); @endphp
-                <div class="sched-head {{ $isTodayCol ? 'sched-head-today' : '' }}"
-                     style="grid-column: {{ 2 + $i }}; grid-row: 1;">
-                    <div style="text-align:center; line-height:1.1;">
-{{ mb_strtolower($d->locale('ru')->translatedFormat('D')) }}, {{ $d->format('d.m') }}
-                        @if($isTodayCol)
-                            <small>Сегодня</small>
-                        @endif
-                    </div>
+    @foreach($days as $day)
+        @php
+            $dayKey = $day->toDateString();
+            $dayBookings = ($bookings[$dayKey] ?? collect());
+        @endphp
+
+        <div class="mr-day-card">
+            <div class="mr-day-header">
+                <div class="mr-day-title">
+                    {{ $ruDays2[$day->format('D')] ?? mb_strtolower($day->format('D')) }}, {{ $day->format('d.m') }}
                 </div>
-            @endforeach
+            </div>
 
-            {{-- Grid cells + time labels --}}
-            @for($r = 0; $r < $slotsCount; $r++)
-                @php
-                    $minutes = $dayStart + $r * $step;
-                    $label = Carbon::createFromTime(0,0)->addMinutes($minutes)->format('H:i');
-                    $gridRow = 2 + $r; // row 1 is header
-                @endphp
+            <div class="mr-day-body">
+                @if($dayBookings->isEmpty())
+                    <div class="mr-day-empty">Встреч не назначено</div>
+                @else
+                    @foreach($dayBookings as $b)
+<div class="mr-meeting">
+    <div class="mr-meeting-time">
+        {{ substr($b->start_time,0,5) }} – {{ substr($b->end_time,0,5) }}
+    </div>
 
-                <div class="sched-time" style="grid-column: 1; grid-row: {{ $gridRow }};">
-                    {{ $label }}
-                </div>
+    <div class="mr-meeting-title">
+        {{ $b->title ?? 'Встреча' }}
+    </div>
 
-                @foreach($days as $i => $d)
-                    @php $isTodayCol = $d->isSameDay($today); @endphp
-                    <div class="sched-cell {{ $isTodayCol ? 'sched-col-today' : '' }}"
-                         style="grid-column: {{ 2 + $i }}; grid-row: {{ $gridRow }};">
-                    </div>
-                @endforeach
-            @endfor
+    @if(!empty($b->author_name))
+        <div class="mr-meeting-author">👤 {{ $b->author_name }}</div>
+    @endif
 
-            {{-- Bookings overlay --}}
-            @foreach($bookings as $b)
-                @php
-                    // ВАЖНО: используем $b (не $booking)
-                    $date = Carbon::parse($b->date)->startOfDay();
-                    $start = Carbon::parse($b->date)->setTimeFromTimeString($b->start_time);
-                    $end   = Carbon::parse($b->date)->setTimeFromTimeString($b->end_time);
+    @if(!empty($b->comment))
+        <div class="mr-meeting-comment">{{ $b->comment }}</div>
+    @endif
 
-                    $dayIndex = $days->search(fn($d) => $d->isSameDay($date));
-                    if ($dayIndex === false) continue;
-
-                    $startMin = max($dayStart, $start->hour * 60 + $start->minute);
-                    $endMin   = min($dayEnd, $end->hour * 60 + $end->minute);
-
-                    $duration = max($step, $endMin - $startMin);
-                    $rowStart = 2 + (int)(($startMin - $dayStart) / $step);
-                    $rowSpan  = max(1, (int) ceil($duration / $step));
-
-                    $col = 2 + (int) $dayIndex;
-                @endphp
-
-                <div class="booking"
-                     style="grid-column: {{ $col }}; grid-row: {{ $rowStart }} / span {{ $rowSpan }};"
-                     title="{{ $start->format('H:i') }}–{{ $end->format('H:i') }}">
-                    <div class="t">{{ $start->format('H:i') }} — {{ $end->format('H:i') }}</div>
-
-                    @if(!empty($b->author_name))
-                        <div class="a">👤 {{ $b->author_name }}</div>
-                    @endif
-
-                    @if(!empty($b->title))
-                        <div class="d">{{ $b->title }}</div>
-                    @elseif(!empty($b->comment))
-                        <div class="d">{{ $b->comment }}</div>
-                    @endif
-
-                    @if($isAdmin)
-                        <div class="booking-actions">
-                            <a href="{{ route('admin.meeting-bookings.edit', $b->id) }}">Ред</a>
-
-                            <form method="POST" action="{{ route('admin.meeting-bookings.destroy', $b->id) }}"
-                                  onsubmit="return confirm('Удалить встречу?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit">×</button>
-                            </form>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
+    @if(!empty($isAdmin) && $isAdmin)
+        <div class="mr-meeting-actions">
+            <a href="{{ url('/admin/meeting-bookings/'.$b->id.'/edit') }}">✏️</a>
         </div>
+    @endif
+</div>
+                    @endforeach
+                @endif
+            </div>
+        </div>
+    @endforeach
+</div>
     </div>
 </div>
 </div> {{-- end .page-wrap --}}
+  </div>
+</div>
 @endsection

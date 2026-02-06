@@ -25,15 +25,18 @@ class HomeController extends Controller
             ->limit(3)
             ->get();
 
-        // Мероприятия
-        $eventsQuery = Event::whereNotNull('start_at');
-        if ($q !== '') {
-            $eventsQuery->where('title', 'like', "%{$q}%");
-        }
-        $events = $eventsQuery
-            ->orderBy('start_at', 'asc')
-            ->limit(3)
-            ->get();
+// Мероприятия
+$eventsQuery = Event::whereNotNull('start_at')
+    ->whereDate('start_at', '>=', Carbon::today());
+
+if ($q !== '') {
+    $eventsQuery->where('title', 'like', "%{$q}%");
+}
+
+$events = $eventsQuery
+    ->orderBy('start_at', 'asc')
+    ->limit(3)
+    ->get();
 
         // Материалы базы знаний
         $knowledgeQuery = Knowledge::query();
@@ -85,10 +88,11 @@ class HomeController extends Controller
             ->get();
 
         // Контакты (правая колонка)
-        $contacts = Employee::where('is_contact', true)
-            ->orderBy('id', 'asc')
-            ->limit(3)
-            ->get();
+$contactIds = [2, 5, 14];       
+
+$contacts = Employee::whereIn('id', $contactIds)
+    ->orderByRaw('FIELD(id, '.implode(',', $contactIds).')')
+    ->get();
 // Дни рождения в текущем календарном месяце
 $birthdays = Employee::query()
     ->whereNotNull('birthday')

@@ -29,6 +29,7 @@
                     ? route('admin.news.update', $news)
                     : route('admin.news.store') }}"
                 class="space-y-5"
+enctype="multipart/form-data"
             >
                 @csrf
                 @if($mode === 'edit')
@@ -140,7 +141,18 @@
                         Можно оставить пустым — тогда в списке будет использована дата создания.
                     </p>
                 </div>
+<div class="mt-3">
+    <label class="block mb-1">Файл</label>
+    <input type="file" name="attachment" class="w-full border mb-4">
+</div>
 
+@if(!empty($news) && !empty($news->attachment_path))
+    <div class="text-sm" style="margin-top:-8px;margin-bottom:12px;">
+        📎 <a href="{{ Storage::url($news->attachment_path) }}" target="_blank">
+            {{ $news->attachment_name ?? 'Файл' }}
+        </a>
+    </div>
+@endif
                 {{-- Кнопки --}}
                 <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-2">
                     <a href="{{ route('admin.news.index') }}"

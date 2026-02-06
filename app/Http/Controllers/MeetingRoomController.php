@@ -28,14 +28,15 @@ public function show(MeetingRoom $room)
 
     $weekEndExclusive = (clone $weekStart)->addDays(5); // Пн..Пт (не включая Сб)
 
-    $days = collect(range(0, 4))->map(fn ($i) => (clone $weekStart)->addDays($i));
+$days = collect(range(0, 4))->map(fn ($i) => (clone $weekStart)->addDays($i));
 
-    $bookings = $room->bookings()
-        ->whereDate('date', '>=', $weekStart->toDateString())
-        ->whereDate('date', '<',  $weekEndExclusive->toDateString())
-        ->orderBy('date')
-        ->orderBy('start_time')
-        ->get();
+$bookings = $room->bookings()
+    ->whereDate('date', '>=', $weekStart->toDateString())
+    ->whereDate('date', '<',  $weekEndExclusive->toDateString())
+    ->orderBy('date')
+    ->orderBy('start_time')
+    ->get()
+    ->groupBy(fn ($b) => \Carbon\Carbon::parse($b->date)->toDateString());
 
     return view('meeting-rooms.show', [
         'room' => $room,

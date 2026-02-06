@@ -71,6 +71,21 @@
         >
     </div>
 
+<div class="form-row">
+    <label for="group">Группа</label>
+    <select name="group" id="group" class="input">
+        @php
+            $groups = ['Дирекция','Отдел продаж 1','Отдел продаж 2','Финансовый блок','Операционный блок','Отдел развития'];
+            $current = old('group', $employee->group ?? '');
+        @endphp
+
+        <option value="">—</option>
+        @foreach($groups as $g)
+            <option value="{{ $g }}" @selected($current === $g)>{{ $g }}</option>
+        @endforeach
+    </select>
+</div>
+
     {{-- Краткое описание / зона ответственности (если хочешь оставить) --}}
     <div>
         <label class="msa-label">Краткое описание / зона ответственности</label>

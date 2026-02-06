@@ -87,6 +87,15 @@
                     <p>Текст новости ещё не добавлен.</p>
                 @endif
             </div>
+
+@if(!empty($news->attachment_path))
+    <div style="margin-top:16px;padding:12px;border:1px solid #e5e7eb;border-radius:12px;">
+        <div style="font-weight:600;margin-bottom:6px;">Вложение</div>
+        <a href="{{ asset('storage/'.$news->attachment_path) }}" target="_blank" rel="noopener">
+            📎 {{ $news->attachment_name ?? 'Скачать файл' }}
+        </a>
+    </div>
+@endif
         </article>
     </div>
 @endsection

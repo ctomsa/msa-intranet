@@ -9,6 +9,7 @@ class Employee extends Model
         'full_name',
         'position',
         'department',
+	'group',
         'email',
         'phone_internal',
         'phone_mobile',
